@@ -1,0 +1,14 @@
+fastapi>=0.70.1
+uvicorn>=0.15.0
+pydantic
+python-multipart
+sqlalchemy>=1.4.0
+psycopg2-binary
+redis
+httpx
+beautifulsoup4
+lxml
+python-dotenv
+firebase-admin
+faiss-cpu
+sentence-transformers
