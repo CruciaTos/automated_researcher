@@ -1,0 +1,58 @@
+name: automated_researcher
+description: AI-powered automated research assistant — Flutter UI scaffold.
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State management
+  flutter_riverpod: ^2.5.1
+
+  # Navigation
+  go_router: ^13.2.0
+
+  # HTTP client
+  dio: ^5.4.3+1
+
+  # Firebase (auth, future use)
+  firebase_core: ^2.30.1
+  firebase_auth: ^4.19.6
+
+  # Deep links
+  url_launcher: ^6.3.0
+
+  # Date formatting
+  intl: ^0.19.0
+
+  # Google Sign-In
+  google_sign_in: ^6.2.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+
+  # Custom font — swap with your preferred typeface.
+  # If "GeneralSans" is unavailable, fall back to a similar geometric sans.
+  fonts:
+    - family: GeneralSans
+      fonts:
+        - asset: assets/fonts/GeneralSans-Regular.otf
+          weight: 400
+        - asset: assets/fonts/GeneralSans-Medium.otf
+          weight: 500
+        - asset: assets/fonts/GeneralSans-Semibold.otf
+          weight: 600
+        - asset: assets/fonts/GeneralSans-Bold.otf
+          weight: 700
+
+  assets:
+    - assets/fonts/

@@ -53,28 +53,28 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/jobs/:id/progress',
         pageBuilder: (context, state) {
-          final id = state.pathParameters['id'] ?? '';
+          final id = int.parse(state.pathParameters['id']!);
           return _slideUpTransition(ProgressScreen(jobId: id));
         },
       ),
       GoRoute(
         path: '/jobs/:id/report',
         pageBuilder: (context, state) {
-          final id = state.pathParameters['id'] ?? '';
+          final id = int.parse(state.pathParameters['id']!);
           return _slideUpTransition(ReportScreen(jobId: id));
         },
       ),
       GoRoute(
         path: '/jobs/:id/report/viewer',
         pageBuilder: (context, state) {
-          final id = state.pathParameters['id'] ?? '';
+          final id = int.parse(state.pathParameters['id']!);
           return _slideTransition(ReportViewerScreen(jobId: id));
         },
       ),
       GoRoute(
         path: '/jobs/:id/chat',
         pageBuilder: (context, state) {
-          final id = state.pathParameters['id'] ?? '';
+          final id = int.parse(state.pathParameters['id']!);
           return _slideTransition(ChatScreen(jobId: id));
         },
       ),

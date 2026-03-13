@@ -9,7 +9,7 @@ import '../../../core/widgets/progress_bar.dart';
 class ProgressScreen extends ConsumerStatefulWidget {
   const ProgressScreen({super.key, required this.jobId});
 
-  final String jobId;
+  final int jobId;
 
   @override
   ConsumerState<ProgressScreen> createState() => _ProgressScreenState();

@@ -11,7 +11,7 @@ import '../../../core/widgets/skeleton_loader.dart';
 class ReportViewerScreen extends ConsumerStatefulWidget {
   const ReportViewerScreen({super.key, required this.jobId});
 
-  final String jobId;
+  final int jobId;
 
   @override
   ConsumerState<ReportViewerScreen> createState() => _ReportViewerScreenState();

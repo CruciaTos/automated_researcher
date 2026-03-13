@@ -20,7 +20,7 @@ class ChatController extends StateNotifier<List<ChatMessage>> {
   ChatController(this._service, this.jobId) : super([]);
 
   final JobService _service;
-  final String jobId;
+  final int jobId;
 
   Future<void> sendMessage(String message) async {
     state = [...state, ChatMessage(content: message, isUser: true)];
@@ -48,7 +48,7 @@ class ChatController extends StateNotifier<List<ChatMessage>> {
 }
 
 final chatControllerProvider =
-    StateNotifierProvider.family<ChatController, List<ChatMessage>, String>(
+    StateNotifierProvider.family<ChatController, List<ChatMessage>, int>(
         (ref, jobId) {
   return ChatController(ref.watch(jobServiceProvider), jobId);
 });

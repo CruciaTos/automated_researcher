@@ -7,7 +7,6 @@ class JobService {
   JobService(this._client);
 
   final ApiClient _client;
-  static final Map<String, String> _topicCache = {};
 
   /// POST /research — create a new research job
   Future<ResearchJob> createJob({
@@ -20,12 +19,8 @@ class JobService {
     });
     // Backend returns { "job_id": "string" } — wrap into ResearchJob shape
     final data = response.data as Map<String, dynamic>;
-    final jobId = data['job_id']?.toString() ?? '';
-    if (jobId.isNotEmpty) {
-      _topicCache[jobId] = topic;
-    }
     return ResearchJob(
-      id: jobId,
+      id: int.tryParse(data['job_id']?.toString() ?? '0') ?? 0,
       topic: topic,
       status: 'running',
       progress: 0,
@@ -34,16 +29,12 @@ class JobService {
   }
 
   /// GET /research/{job_id}/status — poll job progress
-  Future<ResearchJob> fetchJob(String jobId) async {
+  Future<ResearchJob> fetchJob(int jobId) async {
     final response = await _client.get('/research/$jobId/status');
     final data = response.data as Map<String, dynamic>;
-    final topic = data['topic'] as String? ?? _topicCache[jobId] ?? '';
-    if (topic.isNotEmpty) {
-      _topicCache[jobId] = topic;
-    }
     return ResearchJob(
       id: jobId,
-      topic: topic,
+      topic: data['topic'] as String? ?? '',
       status: data['status'] as String? ?? 'running',
       progress: (data['progress'] as num?)?.toInt() ?? 0,
       stage: data['stage'] as String?,
@@ -56,14 +47,9 @@ class JobService {
     final data = response.data as List<dynamic>;
     return data.map((item) {
       final map = item as Map<String, dynamic>;
-      final jobId = map['job_id']?.toString() ?? '';
-      final topic = map['topic'] as String? ?? '';
-      if (jobId.isNotEmpty && topic.isNotEmpty) {
-        _topicCache[jobId] = topic;
-      }
       return ResearchJob(
-        id: jobId,
-        topic: topic,
+        id: int.tryParse(map['job_id']?.toString() ?? '0') ?? 0,
+        topic: map['topic'] as String? ?? '',
         status: map['status'] as String? ?? 'completed',
         progress: map['status'] == 'completed' ? 100 : 0,
         createdAt: map['created_at'] as String?,
@@ -72,34 +58,27 @@ class JobService {
   }
 
   /// GET /research/{job_id}/report — fetch the full report
-  Future<JobReport> fetchReport(String jobId) async {
+  Future<JobReport> fetchReport(int jobId) async {
     final response = await _client.get('/research/$jobId/report');
-    final data = Map<String, dynamic>.from(response.data as Map);
+    final data = response.data as Map<String, dynamic>;
     // Inject job_id if not present
     data['job_id'] ??= jobId;
     return JobReport.fromJson(data);
   }
 
-  /// GET /research/{job_id}/report — map citations to sources list
-  Future<List<SourceDocument>> fetchSources(String jobId) async {
-    final response = await _client.get('/research/$jobId/report');
+  /// GET /jobs/{job_id}/sources — fetch source documents (non-spec endpoint)
+  Future<List<SourceDocument>> fetchSources(int jobId) async {
+    final response = await _client.get('/jobs/$jobId/sources');
     final data = response.data as Map<String, dynamic>;
-    final citations = data['citations'] as List<dynamic>? ?? [];
-    return citations.map((item) {
-      final map = item as Map<String, dynamic>;
-      return SourceDocument.fromJson({
-        'id': map['id'],
-        'title': map['title'],
-        'url': map['url'],
-        'snippet': '',
-        'source_type': 'citation',
-      });
-    }).toList();
+    final sources = data['sources'] as List<dynamic>? ?? [];
+    return sources
+        .map((item) => SourceDocument.fromJson(item as Map<String, dynamic>))
+        .toList();
   }
 
   /// POST /research/{job_id}/ask — RAG chat, returns answer + citations
   Future<ChatResponse> chatWithJobDetailed(
-      String jobId, String question) async {
+      int jobId, String question) async {
     final response = await _client.post('/research/$jobId/ask', data: {
       'question': question,
     });
@@ -107,7 +86,7 @@ class JobService {
   }
 
   /// Simplified chat that returns only the answer string
-  Future<String> chatWithJob(String jobId, String question) async {
+  Future<String> chatWithJob(int jobId, String question) async {
     final result = await chatWithJobDetailed(jobId, question);
     return result.answer;
   }

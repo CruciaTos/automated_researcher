@@ -16,7 +16,7 @@ final jobListProvider = FutureProvider<List<ResearchJob>>((ref) async {
 // ─── Job Detail ────────────────────────────────────────────────────────────
 
 final jobDetailProvider =
-    FutureProvider.family<ResearchJob, String>((ref, jobId) async {
+    FutureProvider.family<ResearchJob, int>((ref, jobId) async {
   final service = ref.watch(jobServiceProvider);
   return service.fetchJob(jobId);
 });
@@ -55,7 +55,7 @@ class JobPollingController
   }
 
   final JobService _service;
-  final String jobId;
+  final int jobId;
   Timer? _timer;
   bool _disposed = false;
 
@@ -91,6 +91,6 @@ class JobPollingController
 }
 
 final jobPollingProvider = StateNotifierProvider.family<
-    JobPollingController, AsyncValue<ResearchJob>, String>((ref, jobId) {
+    JobPollingController, AsyncValue<ResearchJob>, int>((ref, jobId) {
   return JobPollingController(ref.watch(jobServiceProvider), jobId);
 });

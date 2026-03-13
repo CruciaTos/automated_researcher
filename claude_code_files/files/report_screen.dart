@@ -10,7 +10,7 @@ import '../../../core/widgets/skeleton_loader.dart';
 class ReportScreen extends ConsumerStatefulWidget {
   const ReportScreen({super.key, required this.jobId});
 
-  final String jobId;
+  final int jobId;
 
   @override
   ConsumerState<ReportScreen> createState() => _ReportScreenState();

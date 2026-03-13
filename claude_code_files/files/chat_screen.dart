@@ -9,7 +9,7 @@ import '../../../core/widgets/citation_tile.dart';
 class ChatScreen extends ConsumerStatefulWidget {
   const ChatScreen({super.key, required this.jobId});
 
-  final String jobId;
+  final int jobId;
 
   @override
   ConsumerState<ChatScreen> createState() => _ChatScreenState();
