@@ -12,3 +12,4 @@ python-dotenv
 firebase-admin
 faiss-cpu
 sentence-transformers
+feedparser

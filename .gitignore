@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.pyc
+.env
+.env.*
+*.log
+*.sqlite3
+data/
+vector_store/
+node_modules/
+models/
+faiss_index/
+
+chromadb/
