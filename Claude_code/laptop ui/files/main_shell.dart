@@ -1,0 +1,180 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../core/theme/app_theme.dart';
+
+class MainShell extends StatefulWidget {
+  const MainShell({super.key, required this.child});
+
+  final Widget child;
+
+  @override
+  State<MainShell> createState() => _MainShellState();
+}
+
+class _MainShellState extends State<MainShell> {
+  static const _tabs = [
+    '/dashboard',
+    '/history',
+    '/profile',
+  ];
+
+  int _currentIndex(BuildContext context) {
+    final location = GoRouterState.of(context).uri.toString();
+    final index = _tabs.indexWhere((tab) => location.startsWith(tab));
+    return index < 0 ? 0 : index;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final currentIndex = _currentIndex(context);
+
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: widget.child,
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          color: AppColors.surface,
+          border: Border(
+            top: BorderSide(color: AppColors.border, width: 1),
+          ),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(
+              children: [
+                _NavItem(
+                  icon: Icons.home_outlined,
+                  activeIcon: Icons.home_rounded,
+                  label: 'Home',
+                  isActive: currentIndex == 0,
+                  onTap: () => context.go(_tabs[0]),
+                ),
+                _NavItem(
+                  icon: Icons.history_outlined,
+                  activeIcon: Icons.history_rounded,
+                  label: 'History',
+                  isActive: currentIndex == 1,
+                  onTap: () => context.go(_tabs[1]),
+                ),
+                _NavItem(
+                  icon: Icons.person_outline_rounded,
+                  activeIcon: Icons.person_rounded,
+                  label: 'Profile',
+                  isActive: currentIndex == 2,
+                  onTap: () => context.go(_tabs[2]),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NavItem extends StatefulWidget {
+  const _NavItem({
+    required this.icon,
+    required this.activeIcon,
+    required this.label,
+    required this.isActive,
+    required this.onTap,
+  });
+
+  final IconData icon;
+  final IconData activeIcon;
+  final String label;
+  final bool isActive;
+  final VoidCallback onTap;
+
+  @override
+  State<_NavItem> createState() => _NavItemState();
+}
+
+class _NavItemState extends State<_NavItem>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _scaleAnim;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 120),
+    );
+    _scaleAnim = Tween<double>(begin: 1.0, end: 0.88).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTapDown: (_) => _controller.forward(),
+        onTapUp: (_) {
+          _controller.reverse();
+          widget.onTap();
+        },
+        onTapCancel: () => _controller.reverse(),
+        child: AnimatedBuilder(
+          animation: _scaleAnim,
+          builder: (context, child) => Transform.scale(
+            scale: _scaleAnim.value,
+            child: child,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                width: 40,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: widget.isActive
+                      ? AppColors.accentDim
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  widget.isActive ? widget.activeIcon : widget.icon,
+                  size: 20,
+                  color: widget.isActive
+                      ? AppColors.primaryText
+                      : AppColors.mutedText,
+                ),
+              ),
+              const SizedBox(height: 4),
+              AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 200),
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: widget.isActive
+                      ? FontWeight.w600
+                      : FontWeight.w400,
+                  color: widget.isActive
+                      ? AppColors.primaryText
+                      : AppColors.mutedText,
+                  letterSpacing: 0.2,
+                  fontFamily: 'GeneralSans',
+                ),
+                child: Text(widget.label),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
