@@ -6,35 +6,24 @@ import '../models/research_job.dart';
 import '../services/job_service.dart';
 import 'app_providers.dart';
 
-// ─── Job List ──────────────────────────────────────────────────────────────
+// ── Job List ───────────────────────────────────────────────────────────────
 
-final jobListProvider = FutureProvider<List<ResearchJob>>((ref) async {
-  final service = ref.watch(jobServiceProvider);
-  return service.fetchJobs();
+final jobListProvider = FutureProvider<List<ResearchJob>>((ref) {
+  return ref.watch(jobServiceProvider).fetchJobs();
 });
 
-// ─── Job Detail ────────────────────────────────────────────────────────────
-
-final jobDetailProvider =
-    FutureProvider.family<ResearchJob, int>((ref, jobId) async {
-  final service = ref.watch(jobServiceProvider);
-  return service.fetchJob(jobId);
-});
-
-// ─── Job Creation ──────────────────────────────────────────────────────────
+// ── Job Creation ───────────────────────────────────────────────────────────
 
 class JobCreationController
     extends StateNotifier<AsyncValue<ResearchJob?>> {
-  JobCreationController(this._service)
-      : super(const AsyncValue.data(null));
+  JobCreationController(this._service) : super(const AsyncValue.data(null));
 
   final JobService _service;
 
   Future<void> createJob(String topic, int depth) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(
-      () => _service.createJob(topic: topic, depth: depth),
-    );
+        () => _service.createJob(topic: topic, depth: depth));
   }
 
   void reset() => state = const AsyncValue.data(null);
@@ -45,7 +34,7 @@ final jobCreationProvider = StateNotifierProvider<JobCreationController,
   return JobCreationController(ref.watch(jobServiceProvider));
 });
 
-// ─── Job Polling ───────────────────────────────────────────────────────────
+// ── Job Polling ────────────────────────────────────────────────────────────
 
 class JobPollingController
     extends StateNotifier<AsyncValue<ResearchJob>> {
@@ -76,9 +65,7 @@ class JobPollingController
         }
       }
     } catch (error, stackTrace) {
-      if (!_disposed) {
-        state = AsyncValue.error(error, stackTrace);
-      }
+      if (!_disposed) state = AsyncValue.error(error, stackTrace);
     }
   }
 

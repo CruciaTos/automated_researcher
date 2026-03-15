@@ -1,12 +1,17 @@
 import 'package:dio/dio.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class ApiClient {
   ApiClient({String? baseUrl})
       : _dio = Dio(
           BaseOptions(
-            baseUrl: baseUrl ?? 'http://localhost:8000',
+            // TODO: Change to your backend server URL.
+            // Android emulator  → 'http://10.0.2.2:8000'
+            // iOS simulator     → 'http://localhost:8000'
+            // Physical device   → 'http://<your-machine-ip>:8000'
+            baseUrl: baseUrl ?? 'http://10.0.2.2:8000',
             connectTimeout: const Duration(seconds: 15),
-            receiveTimeout: const Duration(seconds: 30),
+            receiveTimeout: const Duration(seconds: 60),
             headers: {
               'Content-Type': 'application/json',
               'Accept': 'application/json',
@@ -15,16 +20,20 @@ class ApiClient {
         ) {
     _dio.interceptors.add(
       InterceptorsWrapper(
-        onRequest: (options, handler) {
-          // TODO: Attach auth token here when Firebase auth is implemented
-          // final token = AuthService.currentToken;
-          // if (token != null) {
-          //   options.headers['Authorization'] = 'Bearer $token';
-          // }
+        onRequest: (options, handler) async {
+          // Attach Firebase ID token on every request if user is signed in.
+          final user = FirebaseAuth.instance.currentUser;
+          if (user != null) {
+            try {
+              final token = await user.getIdToken();
+              options.headers['Authorization'] = 'Bearer $token';
+            } catch (e) {
+              // Token refresh failed — proceed without header; backend will 401.
+            }
+          }
           handler.next(options);
         },
         onError: (error, handler) {
-          // Normalize errors for UI consumption
           handler.next(error);
         },
       ),
@@ -34,7 +43,7 @@ class ApiClient {
   final Dio _dio;
 
   Future<Response<dynamic>> get(String path,
-      {Map<String, dynamic>? queryParameters}) =>
+          {Map<String, dynamic>? queryParameters}) =>
       _dio.get(path, queryParameters: queryParameters);
 
   Future<Response<dynamic>> post(String path, {dynamic data}) =>

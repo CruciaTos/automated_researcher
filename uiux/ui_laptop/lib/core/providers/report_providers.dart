@@ -5,13 +5,11 @@ import '../models/source_document.dart';
 import 'app_providers.dart';
 
 final reportProvider =
-    FutureProvider.family<JobReport, int>((ref, jobId) async {
-  final service = ref.watch(jobServiceProvider);
-  return service.fetchReport(jobId);
+    FutureProvider.family<JobReport, int>((ref, jobId) {
+  return ref.watch(jobServiceProvider).fetchReport(jobId);
 });
 
 final sourcesProvider =
-    FutureProvider.family<List<SourceDocument>, int>((ref, jobId) async {
-  final service = ref.watch(jobServiceProvider);
-  return service.fetchSources(jobId);
+    FutureProvider.family<List<SourceDocument>, int>((ref, jobId) {
+  return ref.watch(jobServiceProvider).fetchSources(jobId);
 });

@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../features/auth/presentation/login_screen.dart';
-import '../../features/dashboard/presentation/dashboard_screen.dart';
-import '../../features/progress/presentation/progress_screen.dart';
-import '../../features/report/presentation/report_screen.dart';
-import '../../features/report/presentation/report_viewer_screen.dart';
-import '../../features/chat/presentation/chat_screen.dart';
-import '../../features/history/presentation/history_screen.dart';
-import '../../features/profile/presentation/profile_screen.dart';
-import '../../features/navigation/presentation/main_shell.dart';
+import '../features/auth/presentation/login_screen.dart';
+import '../features/chat/presentation/chat_screen.dart';
+import '../features/dashboard/presentation/dashboard_screen.dart';
+import '../features/history/presentation/history_screen.dart';
+import '../features/navigation/presentation/main_shell.dart';
+import '../features/profile/presentation/profile_screen.dart';
+import '../features/progress/presentation/progress_screen.dart';
+import '../features/report/presentation/report_screen.dart';
+import '../features/report/presentation/report_viewer_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -20,10 +20,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         path: '/login',
         pageBuilder: (context, state) => CustomTransitionPage(
           child: const LoginScreen(),
-          transitionsBuilder: (context, animation, _, child) => FadeTransition(
-            opacity: animation,
-            child: child,
-          ),
+          transitionsBuilder: (context, animation, _, child) =>
+              FadeTransition(opacity: animation, child: child),
           transitionDuration: const Duration(milliseconds: 350),
         ),
       ),
@@ -32,21 +30,18 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         routes: [
           GoRoute(
             path: '/dashboard',
-            pageBuilder: (context, state) => _fadeTransition(
-              const DashboardScreen(),
-            ),
+            pageBuilder: (context, state) =>
+                _fadeTransition(const DashboardScreen()),
           ),
           GoRoute(
             path: '/history',
-            pageBuilder: (context, state) => _fadeTransition(
-              const HistoryScreen(),
-            ),
+            pageBuilder: (context, state) =>
+                _fadeTransition(const HistoryScreen()),
           ),
           GoRoute(
             path: '/profile',
-            pageBuilder: (context, state) => _fadeTransition(
-              const ProfileScreen(),
-            ),
+            pageBuilder: (context, state) =>
+                _fadeTransition(const ProfileScreen()),
           ),
         ],
       ),
@@ -101,7 +96,8 @@ CustomTransitionPage<void> _slideTransition(Widget child) {
         begin: const Offset(1.0, 0.0),
         end: Offset.zero,
       ).chain(CurveTween(curve: Curves.easeOutCubic));
-      return SlideTransition(position: animation.drive(tween), child: child);
+      return SlideTransition(
+          position: animation.drive(tween), child: child);
     },
     transitionDuration: const Duration(milliseconds: 350),
   );
@@ -111,14 +107,15 @@ CustomTransitionPage<void> _slideUpTransition(Widget child) {
   return CustomTransitionPage(
     child: child,
     transitionsBuilder: (context, animation, _, child) {
-      final slideAnimation = Tween<Offset>(
+      final slide = Tween<Offset>(
         begin: const Offset(0.0, 0.06),
         end: Offset.zero,
       ).chain(CurveTween(curve: Curves.easeOutCubic)).animate(animation);
 
       return FadeTransition(
-        opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
-        child: SlideTransition(position: slideAnimation, child: child),
+        opacity:
+            CurvedAnimation(parent: animation, curve: Curves.easeOut),
+        child: SlideTransition(position: slide, child: child),
       );
     },
     transitionDuration: const Duration(milliseconds: 400),

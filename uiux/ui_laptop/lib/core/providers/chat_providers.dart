@@ -24,24 +24,21 @@ class ChatController extends StateNotifier<List<ChatMessage>> {
 
   Future<void> sendMessage(String message) async {
     state = [...state, ChatMessage(content: message, isUser: true)];
-
     try {
       final result = await _service.chatWithJobDetailed(jobId, message);
       state = [
         ...state,
         ChatMessage(
-          content: result.answer,
-          isUser: false,
-          citations: result.citations,
-        ),
+            content: result.answer,
+            isUser: false,
+            citations: result.citations),
       ];
     } catch (_) {
       state = [
         ...state,
         const ChatMessage(
-          content: 'Sorry, I encountered an error. Please try again.',
-          isUser: false,
-        ),
+            content: 'Sorry, something went wrong. Please try again.',
+            isUser: false),
       ];
     }
   }
