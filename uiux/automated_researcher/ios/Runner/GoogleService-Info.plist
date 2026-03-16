@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>API_KEY</key>
+	<string>AIzaSyBugqHgQef6oSVMHy3HBD-AARHAZ7oBEPc</string>
+	<key>GCM_SENDER_ID</key>
+	<string>851659979459</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.crucio.automatedResearcher</string>
+	<key>PROJECT_ID</key>
+	<string>automated-researcher-8bbad</string>
+	<key>STORAGE_BUCKET</key>
+	<string>automated-researcher-8bbad.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:851659979459:ios:6753a08b3f0dd81ad80076</string>
+</dict>
+</plist>

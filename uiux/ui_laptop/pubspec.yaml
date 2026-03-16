@@ -32,8 +32,6 @@ dependencies:
   # Google Sign-In
   google_sign_in: ^6.2.1
 
-  
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -42,19 +40,17 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # Custom font — swap with your preferred typeface.
-  # If "GeneralSans" is unavailable, fall back to a similar geometric sans.
   fonts:
     - family: GeneralSans
       fonts:
-        - asset: assets\fonts\OTFGeneralSans-Regular.otf
+        - asset: assets/fonts/OTFGeneralSans-Regular.otf
           weight: 400
-        - asset: assets\fonts\OTFGeneralSans-Medium.otf
+        - asset: assets/fonts/OTFGeneralSans-Medium.otf
           weight: 500
-        - asset: assets\fonts\OTFGeneralSans-Semibold.otf
+        - asset: assets/fonts/OTFGeneralSans-Semibold.otf
           weight: 600
-        - asset: assets\fonts\OTFGeneralSans-Bold.otf
+        - asset: assets/fonts/OTFGeneralSans-Bold.otf
           weight: 700
 
   assets:
-    - C:\Users\Soham\ai_teacher\uiux\ui_laptop\assets\fonts
+    - assets/fonts/

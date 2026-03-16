@@ -18,7 +18,7 @@ class SourcesScreen extends ConsumerWidget {
             return const Center(child: Text('No jobs yet.'));
           }
           final latestJob = jobs.first;
-          final sourcesState = ref.watch(sourcesProvider(latestJob.id));
+          final sourcesState = ref.watch(sourcesProvider(latestJob.id as int));
           return sourcesState.when(
             data: (sources) {
               if (sources.isEmpty) {
