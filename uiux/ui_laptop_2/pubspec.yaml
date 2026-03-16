@@ -1,4 +1,4 @@
-name: ui_laptop
+name: uiux
 description: AI-powered automated research assistant — Flutter UI scaffold.
 publish_to: 'none'
 version: 1.0.0+1
@@ -20,8 +20,8 @@ dependencies:
   dio: ^5.4.3+1
 
   # Firebase (auth, future use)
-  firebase_core: ^2.30.1
-  firebase_auth: ^4.19.6
+  firebase_core: ^3.8.0
+  firebase_auth: ^5.1.0
 
   # Deep links
   url_launcher: ^6.3.0
@@ -32,8 +32,6 @@ dependencies:
   # Google Sign-In
   google_sign_in: ^6.2.1
 
-  
-
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -42,19 +40,15 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
-  # Custom font — swap with your preferred typeface.
-  # If "GeneralSans" is unavailable, fall back to a similar geometric sans.
   fonts:
     - family: GeneralSans
       fonts:
-        - asset: assets\fonts\OTFGeneralSans-Regular.otf
+        - asset: assets/fonts/OTFGeneralSans-Regular.otf
           weight: 400
-        - asset: assets\fonts\OTFGeneralSans-Medium.otf
+        - asset: assets/fonts/OTFGeneralSans-Medium.otf
           weight: 500
-        - asset: assets\fonts\OTFGeneralSans-Semibold.otf
+        - asset: assets/fonts/OTFGeneralSans-Semibold.otf
           weight: 600
-        - asset: assets\fonts\OTFGeneralSans-Bold.otf
+        - asset: assets/fonts/OTFGeneralSans-Bold.otf
           weight: 700
 
-  assets:
-    - C:\Users\Soham\ai_teacher\uiux\ui_laptop\assets\fonts
