@@ -7,6 +7,9 @@ import '../../../core/providers/app_providers.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/primary_button.dart';
 
+
+const bool kEnableAuth = false;
+
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -53,9 +56,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
   // ── Email auth ────────────────────────────────────────────────────────────
 
-  Future<void> _submitEmail() async {
+   Future<void> _submitEmail() async {
+    /// ✅ BYPASS
+    if (!kEnableAuth) {
+      if (mounted) context.go('/dashboard');
+      return;
+    }
+
     final email = _emailCtrl.text.trim();
     final password = _passwordCtrl.text;
+
     if (email.isEmpty || password.isEmpty) {
       setState(() => _errorMessage = 'Please fill in all fields.');
       return;
@@ -87,10 +97,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   // ── Google auth ───────────────────────────────────────────────────────────
 
   Future<void> _submitGoogle() async {
+    /// ✅ BYPASS
+    if (!kEnableAuth) {
+      if (mounted) context.go('/dashboard');
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _errorMessage = null;
     });
+
     try {
       final result =
           await ref.read(authServiceProvider).signInWithGoogle();
