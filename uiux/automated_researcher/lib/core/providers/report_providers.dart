@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/report.dart';
-import '../services/job_service.dart';
 import 'app_providers.dart';
 
 final reportProvider = FutureProvider.family<JobReport, int>((ref, jobId) async {

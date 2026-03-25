@@ -17,7 +17,7 @@ class ProfileScreen extends StatelessWidget {
             const SizedBox(height: 16),
             Text('User', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 4),
-            Text('user@example.com', style: Theme.of(context).textTheme.bodyMedium),
+            Text('user@crucio.com', style: Theme.of(context).textTheme.bodyMedium),
             const SizedBox(height: 24),
             const Text('Preferences'),
             const SizedBox(height: 8),
