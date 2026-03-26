@@ -1,12 +1,21 @@
+// lib/core/services/settings_service.dart
+//
+// LAN SETUP NOTES
+// ───────────────
+// Physical Android/iOS device on the same Wi-Fi as your laptop:
+//   defaultBackendUrl = 'http://<YOUR-LAN-IP>:8000'
+//   e.g.               'http://192.168.1.42:8000'
+//
+// Android emulator (maps host loopback):
+//   defaultBackendUrl = 'http://10.0.2.2:8000'
+//
+// iOS simulator (localhost works directly):
+//   defaultBackendUrl = 'http://localhost:8000'
+//
+// The user can always override this at runtime in Advanced Settings.
+
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// Persists user-configurable settings across app restarts.
-///
-/// Keys stored:
-///   backend_url    — FastAPI server base URL
-///   model_basic    — Ollama model for Quick (≤10 min) jobs
-///   model_standard — Ollama model for Standard (≤30 min) jobs
-///   model_deep     — Ollama model for Deep (>30 min) jobs
 class SettingsService {
   SettingsService(this._prefs);
 
@@ -18,8 +27,23 @@ class SettingsService {
   static const _kModelStandard = 'model_standard';
   static const _kModelDeep     = 'model_deep';
 
-  /// Default URL for Android emulator. Change to your machine's LAN IP
-  /// (e.g. http://192.168.1.5:8000) when running on a physical device.
+  // ── LAN SETUP ─────────────────────────────────────────────────────────────
+  // Step 1 — find your laptop's IP:
+  //   macOS/Linux : ipconfig getifaddr en0    OR    hostname -I
+  //   Windows     : ipconfig  (look for "IPv4 Address" under Wi-Fi)
+  //
+  // Step 2 — start the backend so it's reachable on the LAN:
+  //   uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --reload
+  //   (the key flag is --host 0.0.0.0; localhost/127.0.0.1 is laptop-only)
+  //
+  // Step 3 — set the URL below (or change it at runtime in Advanced Settings):
+  //   Physical Android/iOS on same Wi-Fi  →  'http://192.168.x.x:8000'
+  //   Android emulator                    →  'http://10.0.2.2:8000'
+  //   iOS simulator                       →  'http://localhost:8000'
+  //
+  // Step 4 (Android physical device only) — allow plain HTTP in
+  //   android/app/src/main/AndroidManifest.xml  inside <application>:
+  //   android:usesCleartextTraffic="true"
   static const defaultBackendUrl = 'http://10.0.2.2:8000';
 
   // ── Getters ───────────────────────────────────────────────────────────────
@@ -27,15 +51,13 @@ class SettingsService {
   String get backendUrl =>
       _prefs.getString(_kBackendUrl) ?? defaultBackendUrl;
 
-  /// Returns null when the user has not chosen a model → backend default used.
   String? get modelBasic    => _prefs.getString(_kModelBasic);
   String? get modelStandard => _prefs.getString(_kModelStandard);
   String? get modelDeep     => _prefs.getString(_kModelDeep);
 
-  /// Returns the persisted model for the given depth in minutes.
   String? modelForDepth(int depthMinutes) {
-    if (depthMinutes <= 10)  return modelBasic;
-    if (depthMinutes <= 30)  return modelStandard;
+    if (depthMinutes <= 10) return modelBasic;
+    if (depthMinutes <= 30) return modelStandard;
     return modelDeep;
   }
 
@@ -59,7 +81,6 @@ class SettingsService {
           ? _prefs.setString(_kModelDeep, model)
           : _prefs.remove(_kModelDeep);
 
-  /// Convenience: persist all model prefs at once.
   Future<void> setModels({
     String? basic,
     String? standard,
@@ -70,6 +91,5 @@ class SettingsService {
     await setModelDeep(deep);
   }
 
-  /// Wipe everything — useful for "Reset to defaults".
   Future<void> clearAll() => _prefs.clear();
 }

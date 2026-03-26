@@ -3,6 +3,12 @@ app/main.py — FastAPI application entrypoint.
 
 Start with:
     uvicorn backend.app.main:app --reload
+
+For LAN access (phones/tablets on the same Wi-Fi):
+    uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --reload
+    ↑ --host 0.0.0.0 is the only difference — it binds to all interfaces
+      so other devices on your network can reach the server.
+      Without it, the server only accepts connections from this machine.
 """
 
 import logging
@@ -42,8 +48,8 @@ app = FastAPI(
     version="0.1.0",
 )
 
-# CORS — allow the Flutter app (any origin on LAN) to reach the API.
-# Tighten `allow_origins` to specific IPs/domains in production.
+# CORS — allow_origins=["*"] means any origin (including your phone on LAN)
+# can call the API. This is intentional for local/LAN use. Tighten in prod.
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

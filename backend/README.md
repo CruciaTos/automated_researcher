@@ -85,6 +85,51 @@ API docs available at: http://localhost:8000/docs
 
 ---
 
+## Run on LAN (local network only)
+
+By default, Uvicorn binds to `127.0.0.1`, which is only reachable from the same
+machine. To allow your **phone / another PC on the same Wi‑Fi/LAN** to reach the
+API, bind to `0.0.0.0`.
+
+### Start server (LAN)
+
+```bash
+uvicorn backend.app.main:app --host 0.0.0.0 --port 8000
+```
+
+On Windows, you can also run:
+
+```bat
+run_lan.bat
+```
+
+### Find your laptop IP
+
+Windows:
+
+```bat
+ipconfig
+```
+
+Use the **IPv4 Address** of your Wi‑Fi adapter, e.g. `192.168.1.23`.
+Your LAN URL will be:
+
+```
+http://192.168.1.23:8000
+```
+
+### Quick LAN verification
+
+From another device on the same LAN, open:
+
+- `http://<laptop-ip>:8000/health`
+- `http://<laptop-ip>:8000/docs`
+
+If it does not load, allow inbound TCP port `8000` in Windows Firewall for the
+**Private** network profile.
+
+---
+
 ## API Endpoints
 
 | Method | Path | Description |

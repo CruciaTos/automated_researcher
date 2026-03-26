@@ -5,10 +5,18 @@ class ApiClient {
   ApiClient({String? baseUrl})
       : _dio = Dio(
           BaseOptions(
-            // TODO: Change to your backend server URL.
+            // ── LAN SETUP ──────────────────────────────────────────────────
+            // This fallback is only used if null is passed in (shouldn't
+            // happen in practice — the app always reads from SettingsService).
+            //
+            // Physical device on same Wi-Fi as your laptop:
+            //   'http://192.168.x.x:8000'   ← your laptop's LAN IP
+            //
             // Android emulator  → 'http://10.0.2.2:8000'
             // iOS simulator     → 'http://localhost:8000'
-            // Physical device   → 'http://<your-machine-ip>:8000'
+            //
+            // Change via the app at runtime:
+            //   Dashboard → ⚙ tune icon → Advanced Settings → Backend URL
             baseUrl: baseUrl ?? 'http://10.0.2.2:8000',
             connectTimeout: const Duration(seconds: 15),
             receiveTimeout: const Duration(seconds: 60),
