@@ -17,27 +17,15 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for android - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return android;
       case TargetPlatform.iOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for ios - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return ios;
       case TargetPlatform.macOS:
-        throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for macos - '
-          'you can reconfigure this by running the FlutterFire CLI again.',
-        );
+        return macos;
       case TargetPlatform.windows:
         return windows;
       case TargetPlatform.linux:
@@ -54,12 +42,52 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions windows = FirebaseOptions(
     apiKey: 'AIzaSyD-9bj6K0M1q6_N_bfwajicG4SRhbciDO0',
-    appId: '1:851659979459:web:4f27e4d0c67c7cd0d80076',
+    appId: '1:851659979459:web:3db7afcd13dbc978d80076',
     messagingSenderId: '851659979459',
     projectId: 'automated-researcher-8bbad',
     authDomain: 'automated-researcher-8bbad.firebaseapp.com',
     storageBucket: 'automated-researcher-8bbad.firebasestorage.app',
-    measurementId: 'G-8MTPX2QZ1W',
+    measurementId: 'G-HVXV2FWT85',
+  );
+
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyD-9bj6K0M1q6_N_bfwajicG4SRhbciDO0',
+    appId: '1:851659979459:web:40a768e460546d05d80076',
+    messagingSenderId: '851659979459',
+    projectId: 'automated-researcher-8bbad',
+    authDomain: 'automated-researcher-8bbad.firebaseapp.com',
+    storageBucket: 'automated-researcher-8bbad.firebasestorage.app',
+    measurementId: 'G-9H3EQ8WEV6',
+  );
+
+  static const FirebaseOptions macos = FirebaseOptions(
+    apiKey: 'AIzaSyBugqHgQef6oSVMHy3HBD-AARHAZ7oBEPc',
+    appId: '1:851659979459:ios:2764157e5313549fd80076',
+    messagingSenderId: '851659979459',
+    projectId: 'automated-researcher-8bbad',
+    storageBucket: 'automated-researcher-8bbad.firebasestorage.app',
+    androidClientId: '851659979459-f9d7f5m75012ns8ocs6j1tdk6f01boc1.apps.googleusercontent.com',
+    iosClientId: '851659979459-ebe86l27jrn34gh6kukfcapu45hah7p5.apps.googleusercontent.com',
+    iosBundleId: 'com.crucio.automated_researcher',
+  );
+
+  static const FirebaseOptions ios = FirebaseOptions(
+    apiKey: 'AIzaSyBugqHgQef6oSVMHy3HBD-AARHAZ7oBEPc',
+    appId: '1:851659979459:ios:2764157e5313549fd80076',
+    messagingSenderId: '851659979459',
+    projectId: 'automated-researcher-8bbad',
+    storageBucket: 'automated-researcher-8bbad.firebasestorage.app',
+    androidClientId: '851659979459-f9d7f5m75012ns8ocs6j1tdk6f01boc1.apps.googleusercontent.com',
+    iosClientId: '851659979459-ebe86l27jrn34gh6kukfcapu45hah7p5.apps.googleusercontent.com',
+    iosBundleId: 'com.crucio.automated_researcher',
+  );
+
+  static const FirebaseOptions android = FirebaseOptions(
+    apiKey: 'AIzaSyCH2j1tcjK8gIoiLDDySSYUmDueiH_rOAM',
+    appId: '1:851659979459:android:2b68d262c42f0e74d80076',
+    messagingSenderId: '851659979459',
+    projectId: 'automated-researcher-8bbad',
+    storageBucket: 'automated-researcher-8bbad.firebasestorage.app',
   );
 
 }

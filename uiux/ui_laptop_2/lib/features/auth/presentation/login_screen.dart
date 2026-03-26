@@ -8,7 +8,7 @@ import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/primary_button.dart';
 
 
-const bool kEnableAuth = false;
+const bool kEnableAuth = true;
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
