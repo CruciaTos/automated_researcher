@@ -5,26 +5,27 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:uiux/main.dart';
+import 'package:uiux/app/app.dart';
+import 'package:uiux/features/auth/presentation/login_screen.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('App boots to login screen (smoke test)',
+      (WidgetTester tester) async {
+    // This app's entrypoint (`main.dart`) wires up Firebase + SharedPreferences
+    // before calling runApp(). In a widget test we only need to verify that
+    // the UI can build, so we pump the root App wrapped in a ProviderScope.
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: App(),
+      ),
+    );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    // Let go_router build the initial route.
+    await tester.pumpAndSettle();
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.byType(LoginScreen), findsOneWidget);
   });
 }
