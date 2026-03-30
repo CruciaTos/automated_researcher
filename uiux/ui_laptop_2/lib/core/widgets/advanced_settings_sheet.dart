@@ -1,6 +1,11 @@
+import 'dart:io';
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
+// ignore: depend_on_referenced_packages
+import 'package:http/http.dart' as http;
 import 'package:uiux/core/services/settings_service.dart';
 
 import '../../../core/providers/settings_providers.dart';
@@ -173,6 +178,7 @@ class _AdvancedSettingsSheetState
   @override
   Widget build(BuildContext context) {
     final modelsAsync = ref.watch(availableModelsProvider);
+    final currentBaseUrl = ref.watch(backendUrlProvider);
     final bottomPad = MediaQuery.of(context).viewInsets.bottom;
 
     return Container(
@@ -234,6 +240,15 @@ class _AdvancedSettingsSheetState
             ]),
 
             const SizedBox(height: 28),
+            if (Platform.isWindows) ...[
+              _sectionLabel('BACKEND ENGINE'),
+              const SizedBox(height: 10),
+              _BackendEngineLauncher(
+                currentBaseUrl: currentBaseUrl,
+                onRunning: _checkConnection,
+              ),
+              const SizedBox(height: 28),
+            ],
             _sectionLabel('BACKEND SERVER'),
             const SizedBox(height: 10),
 
@@ -415,6 +430,279 @@ class _AdvancedSettingsSheetState
               const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
         ),
       ),
+    );
+  }
+}
+
+enum _BackendEngineStatus { idle, starting, running, failed }
+
+class _BackendEngineLauncher extends StatefulWidget {
+  const _BackendEngineLauncher({
+    required this.currentBaseUrl,
+    required this.onRunning,
+  });
+
+  final String currentBaseUrl;
+  final Future<void> Function() onRunning;
+
+  @override
+  State<_BackendEngineLauncher> createState() => _BackendEngineLauncherState();
+}
+
+class _BackendEngineLauncherState extends State<_BackendEngineLauncher>
+    with TickerProviderStateMixin {
+  late final AnimationController _borderController;
+  late final AnimationController _pulseController;
+
+  _BackendEngineStatus _status = _BackendEngineStatus.idle;
+
+  @override
+  void initState() {
+    super.initState();
+    _borderController =
+        AnimationController(vsync: this, duration: const Duration(seconds: 3))
+          ..repeat();
+    _pulseController =
+        AnimationController(vsync: this, duration: const Duration(seconds: 2))
+          ..repeat(reverse: true);
+    _initHealthState();
+  }
+
+  @override
+  void dispose() {
+    _borderController.dispose();
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _initHealthState() async {
+    final isRunning = await _pingHealth();
+    if (!mounted) return;
+    setState(() {
+      _status = isRunning ? _BackendEngineStatus.running : _BackendEngineStatus.idle;
+    });
+    if (isRunning) {
+      await widget.onRunning();
+    }
+  }
+
+  Future<bool> _pingHealth() async {
+    try {
+      final healthUri = Uri.parse(widget.currentBaseUrl).resolve('/health');
+      final response =
+          await http.get(healthUri).timeout(const Duration(seconds: 4));
+      return response.statusCode == 200;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  void _startPulseForState(_BackendEngineStatus status) {
+    if (status == _BackendEngineStatus.idle) {
+      _pulseController
+        ..duration = const Duration(seconds: 2)
+        ..repeat(reverse: true);
+      return;
+    }
+    if (status == _BackendEngineStatus.starting) {
+      _pulseController
+        ..duration = const Duration(seconds: 1)
+        ..repeat(reverse: true);
+      return;
+    }
+    _pulseController.stop();
+  }
+
+  Future<void> _handleTap() async {
+    if (_status == _BackendEngineStatus.starting) return;
+    if (_status == _BackendEngineStatus.running) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Already running on LAN')),
+      );
+      return;
+    }
+
+    setState(() {
+      _status = _BackendEngineStatus.starting;
+    });
+    _startPulseForState(_BackendEngineStatus.starting);
+
+    final healthyBeforeLaunch = await _pingHealth();
+    if (healthyBeforeLaunch) {
+      if (!mounted) return;
+      setState(() {
+        _status = _BackendEngineStatus.running;
+      });
+      _startPulseForState(_BackendEngineStatus.running);
+      await widget.onRunning();
+      return;
+    }
+
+    try {
+      await Process.start(
+        'cmd.exe',
+        [
+          '/k',
+          'cd /d C:\\Users\\Soham\\ai_teacher && conda activate ai_teacher && uvicorn backend.app.main:app --host 0.0.0.0 --port 8000',
+        ],
+        mode: ProcessStartMode.detached,
+        runInShell: true,
+      );
+    } catch (_) {}
+
+    for (var i = 0; i < 10; i++) {
+      await Future<void>.delayed(const Duration(seconds: 2));
+      final healthy = await _pingHealth();
+      if (healthy) {
+        if (!mounted) return;
+        setState(() {
+          _status = _BackendEngineStatus.running;
+        });
+        _startPulseForState(_BackendEngineStatus.running);
+        await widget.onRunning();
+        return;
+      }
+    }
+
+    if (!mounted) return;
+    setState(() {
+      _status = _BackendEngineStatus.failed;
+    });
+    _startPulseForState(_BackendEngineStatus.failed);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final buttonLabel = switch (_status) {
+      _BackendEngineStatus.idle => "It's Time Baby 🚀",
+      _BackendEngineStatus.starting => 'Starting...',
+      _BackendEngineStatus.running => 'Backend Running ✓',
+      _BackendEngineStatus.failed => 'Failed — Tap to Retry',
+    };
+
+    final statusLine = switch (_status) {
+      _BackendEngineStatus.idle => 'Backend is offline',
+      _BackendEngineStatus.starting => 'Launching backend on LAN...',
+      _BackendEngineStatus.running => 'Live at ${widget.currentBaseUrl}',
+      _BackendEngineStatus.failed => 'Could not reach backend after 20s',
+    };
+
+    final iconWidget = switch (_status) {
+      _BackendEngineStatus.idle =>
+        const Text('🚀', style: TextStyle(fontSize: 16, height: 1.0)),
+      _BackendEngineStatus.starting => const SizedBox(
+          width: 16,
+          height: 16,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+          ),
+        ),
+      _BackendEngineStatus.running => const Text(
+          '✓',
+          style: TextStyle(
+            fontSize: 16,
+            color: Color(0xFF00FF88),
+            fontWeight: FontWeight.w700,
+            height: 1.0,
+          ),
+        ),
+      _BackendEngineStatus.failed => const Icon(
+          Icons.refresh_rounded,
+          size: 16,
+          color: Colors.white,
+        ),
+    };
+
+    return AnimatedBuilder(
+      animation: Listenable.merge([_borderController, _pulseController]),
+      builder: (context, child) {
+        final t = _borderController.value;
+        final pulseValue = _pulseController.value;
+
+        final alignX = math.cos(t * 2 * math.pi);
+        final alignY = math.sin(t * 2 * math.pi);
+
+        final glowColor = switch (_status) {
+          _BackendEngineStatus.running => const Color(0xFF00FF88),
+          _BackendEngineStatus.failed => const Color(0xFFFF4D4D),
+          _ => const Color(0xFF8B5CF6),
+        };
+
+        final spread = switch (_status) {
+          _BackendEngineStatus.idle || _BackendEngineStatus.starting =>
+            2.0 + (pulseValue * 6.0),
+          _ => 6.0,
+        };
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            GestureDetector(
+              onTap: _status == _BackendEngineStatus.starting ? null : _handleTap,
+              child: Container(
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(14),
+                  gradient: LinearGradient(
+                    begin: Alignment(alignX, alignY),
+                    end: Alignment(-alignX, -alignY),
+                    colors: const [
+                      Color(0xFF8B5CF6),
+                      Color(0xFF3B82F6),
+                      Color(0xFF22D3EE),
+                    ],
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: glowColor.withAlpha(_status == _BackendEngineStatus.starting
+                          ? 180
+                          : 140),
+                      blurRadius: 24,
+                      spreadRadius: spread,
+                    ),
+                  ],
+                ),
+                child: Container(
+                  margin: const EdgeInsets.all(1.5),
+                  height: 52,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0A0A0F),
+                    borderRadius: BorderRadius.circular(12.5),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      iconWidget,
+                      const SizedBox(width: 8),
+                      Text(
+                        buttonLabel,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                          letterSpacing: 0.2,
+                          fontFamily: 'GeneralSans',
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+            Text(
+              statusLine,
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.mutedText,
+                fontFamily: 'GeneralSans',
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 }
