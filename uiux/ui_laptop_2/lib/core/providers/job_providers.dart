@@ -58,6 +58,14 @@ class JobPollingController
   Timer? _timer;
   bool _disposed = false;
 
+  bool _isTerminal(String status) =>
+      status == 'completed' || status == 'failed';
+
+  void _stopPolling() {
+    _timer?.cancel();
+    _timer = null;
+  }
+
   void _startPolling() {
     _fetch();
     _timer = Timer.periodic(const Duration(seconds: 4), (_) {
@@ -65,13 +73,15 @@ class JobPollingController
     });
   }
 
+  Future<void> refreshNow() => _fetch();
+
   Future<void> _fetch() async {
     try {
       final job = await _service.fetchJob(jobId);
       if (!_disposed) {
         state = AsyncValue.data(job);
-        if (job.status == 'completed' || job.status == 'failed') {
-          _timer?.cancel();
+        if (_isTerminal(job.status)) {
+          _stopPolling();
         }
       }
     } catch (error, stackTrace) {
@@ -82,7 +92,7 @@ class JobPollingController
   @override
   void dispose() {
     _disposed = true;
-    _timer?.cancel();
+    _stopPolling();
     super.dispose();
   }
 }

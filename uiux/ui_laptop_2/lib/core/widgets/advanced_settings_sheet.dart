@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dio/dio.dart';
 import 'package:uiux/core/services/settings_service.dart';
 
 import '../../../core/providers/settings_providers.dart';
@@ -43,6 +43,13 @@ class _AdvancedSettingsSheetState
   String? _connectionStatus; // null | 'ok' | 'error'
   String? _connectionDetail;
 
+  // LAN diagnostics state
+  bool _diagLoading = false;
+  bool? _diagOk;
+  String? _diagDetail;
+  String _diagBaseUrl = '';
+  List<String> _diagModels = const [];
+
   @override
   void initState() {
     super.initState();
@@ -51,7 +58,16 @@ class _AdvancedSettingsSheetState
     _selectedBasic    = settings.modelBasic;
     _selectedStandard = settings.modelStandard;
     _selectedDeep     = settings.modelDeep;
+    _diagBaseUrl = settings.backendUrl;
     _urlCtrl.addListener(() => setState(() => _urlEdited = true));
+
+    // Auto-run diagnostics on load using the saved URL.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkConnection(
+        overrideUrl: settings.backendUrl,
+        persistUrl: false,
+      );
+    });
   }
 
   @override
@@ -63,29 +79,64 @@ class _AdvancedSettingsSheetState
   // ── Test + load models ──────────────────────────────────────────────────
 
   Future<void> _connectAndLoad() async {
-    final url = _urlCtrl.text.trim();
+    await _checkConnection();
+  }
+
+  Future<void> _checkConnection({
+    String? overrideUrl,
+    bool persistUrl = true,
+  }) async {
+    final url = (overrideUrl ?? _urlCtrl.text).trim();
     if (url.isEmpty) return;
 
     setState(() {
+      _diagLoading = true;
+      _diagBaseUrl = url;
+      _diagDetail = null;
       _connectionStatus = null;
       _connectionDetail = null;
     });
 
-    // Persist new URL first so the provider rebuilds.
-    await ref.read(settingsServiceProvider).setBackendUrl(url);
-    ref.read(backendUrlProvider.notifier).state = url;
+    if (persistUrl) {
+      // Persist URL first so providers rebuild against this base URL.
+      await ref.read(settingsServiceProvider).setBackendUrl(url);
+      ref.read(backendUrlProvider.notifier).state = url;
+    }
 
-    // Re-fetch the models list.
-    ref.invalidate(availableModelsProvider);
-    final result = await ref.read(availableModelsProvider.future).then(
-      (models) => (models: models, error: null as String?),
-      onError: (e) => (models: <String>[], error: e.toString()),
+    final dio = Dio(
+      BaseOptions(
+        baseUrl: url,
+        connectTimeout: const Duration(seconds: 8),
+        receiveTimeout: const Duration(seconds: 15),
+      ),
     );
+
+    bool ok = false;
+    String? detail;
+    List<String> models = const [];
+
+    try {
+      await dio.get('/health');
+      final modelsRes = await dio.get('/health/models');
+      final data = modelsRes.data as Map<String, dynamic>;
+      models = List<String>.from(data['models'] as List? ?? []);
+      ok = true;
+
+      // Keep model selector provider in sync with diagnostics check.
+      ref.invalidate(availableModelsProvider);
+      await ref.read(availableModelsProvider.future);
+    } catch (e) {
+      detail = e.toString();
+    }
 
     if (!mounted) return;
     setState(() {
-      _connectionStatus = result.error == null ? 'ok' : 'error';
-      _connectionDetail = result.error;
+      _diagLoading = false;
+      _diagOk = ok;
+      _diagModels = models;
+      _diagDetail = detail;
+      _connectionStatus = ok ? 'ok' : 'error';
+      _connectionDetail = detail;
       _urlEdited = false;
     });
   }
@@ -222,6 +273,18 @@ class _AdvancedSettingsSheetState
             ],
 
             const SizedBox(height: 28),
+            _sectionLabel('LAN DIAGNOSTICS'),
+            const SizedBox(height: 10),
+            _DiagnosticsCard(
+              baseUrl: _diagBaseUrl,
+              isLoading: _diagLoading,
+              isOk: _diagOk,
+              detail: _diagDetail,
+              models: _diagModels,
+              onRefresh: _checkConnection,
+            ),
+
+            const SizedBox(height: 28),
             _sectionLabel('MODEL PER DEPTH LEVEL'),
             const SizedBox(height: 6),
             const Text(
@@ -282,7 +345,7 @@ class _AdvancedSettingsSheetState
               child: GestureDetector(
                 onTap: () async {
                   await ref.read(settingsServiceProvider).clearAll();
-                  final def = SettingsService.defaultBackendUrl;
+                  const def = SettingsService.defaultBackendUrl;
                   _urlCtrl.text = def;
                   ref.read(backendUrlProvider.notifier).state = def;
                   await ref
@@ -580,6 +643,109 @@ class _StatusBanner extends StatelessWidget {
                   fontFamily: 'GeneralSans')),
         ),
       ]),
+    );
+  }
+}
+
+class _DiagnosticsCard extends StatelessWidget {
+  const _DiagnosticsCard({
+    required this.baseUrl,
+    required this.isLoading,
+    required this.isOk,
+    required this.detail,
+    required this.models,
+    required this.onRefresh,
+  });
+
+  final String baseUrl;
+  final bool isLoading;
+  final bool? isOk;
+  final String? detail;
+  final List<String> models;
+  final Future<void> Function() onRefresh;
+
+  @override
+  Widget build(BuildContext context) {
+    const notChecked = 'Not checked';
+    final statusText = isLoading
+        ? 'Checking…'
+        : (isOk == true ? 'Connected' : (isOk == false ? 'Not reachable' : notChecked));
+    final statusColor = isLoading
+        ? AppColors.secondaryText
+        : (isOk == true ? AppColors.success : (isOk == false ? AppColors.error : AppColors.mutedText));
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: AppColors.background,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.border, width: 1),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: statusColor,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                statusText,
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: statusColor,
+                  fontFamily: 'GeneralSans',
+                ),
+              ),
+              const Spacer(),
+              TextButton(
+                onPressed: isLoading ? null : onRefresh,
+                child: const Text('Refresh'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Base URL: $baseUrl',
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.secondaryText,
+              fontFamily: 'GeneralSans',
+            ),
+          ),
+          if (detail != null && detail!.isNotEmpty) ...[
+            const SizedBox(height: 6),
+            Text(
+              detail!,
+              style: const TextStyle(
+                fontSize: 12,
+                color: AppColors.mutedText,
+                height: 1.4,
+                fontFamily: 'GeneralSans',
+              ),
+            ),
+          ],
+          const SizedBox(height: 10),
+          Text(
+            models.isEmpty
+                ? 'Available models: none'
+                : 'Available models: ${models.join(', ')}',
+            style: const TextStyle(
+              fontSize: 12,
+              color: AppColors.secondaryText,
+              height: 1.4,
+              fontFamily: 'GeneralSans',
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

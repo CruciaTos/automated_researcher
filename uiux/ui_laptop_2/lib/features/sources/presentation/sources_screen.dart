@@ -67,14 +67,20 @@ class _SourcesScreenState extends ConsumerState<SourcesScreen>
             Expanded(
               child: jobsState.when(
                 loading: () => _skeleton(),
-                error: (_, __) => _empty(),
+                error: (e, __) => _error(
+                  message: '$e',
+                  onRetry: () => ref.refresh(jobListProvider),
+                ),
                 data: (jobs) {
                   if (jobs.isEmpty) return _empty();
                   final latest = jobs.first;
                   final srcState = ref.watch(sourcesProvider(latest.id));
                   return srcState.when(
                     loading: () => _skeleton(),
-                    error: (_, __) => _empty(),
+                    error: (e, __) => _error(
+                      message: '$e',
+                      onRetry: () => ref.refresh(sourcesProvider(latest.id)),
+                    ),
                     data: (sources) {
                       if (sources.isEmpty) return _empty();
                       return RefreshIndicator(
@@ -145,6 +151,44 @@ class _SourcesScreenState extends ConsumerState<SourcesScreen>
                   height: 1.5,
                   fontFamily: 'GeneralSans')),
         ]),
+      );
+
+  Widget _error({required String message, required VoidCallback onRetry}) =>
+      RefreshIndicator(
+        onRefresh: () async => onRetry(),
+        color: AppColors.primaryText,
+        backgroundColor: AppColors.surface,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.fromLTRB(24, 0, 24, 32),
+          children: [
+            const SizedBox(height: 120),
+            const Icon(Icons.error_outline_rounded,
+                size: 40, color: AppColors.error),
+            const SizedBox(height: 16),
+            const Text('Failed to load sources',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primaryText,
+                    fontFamily: 'GeneralSans')),
+            const SizedBox(height: 8),
+            Text(message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColors.mutedText,
+                    fontFamily: 'GeneralSans')),
+            const SizedBox(height: 20),
+            Center(
+              child: OutlinedButton(
+                onPressed: onRetry,
+                child: const Text('Retry'),
+              ),
+            ),
+          ],
+        ),
       );
 }
 

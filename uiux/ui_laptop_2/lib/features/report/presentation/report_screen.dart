@@ -55,11 +55,16 @@ class _ReportScreenState extends ConsumerState<ReportScreen>
 
             return FadeTransition(
               opacity: _fadeIn,
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(24, 48, 24, 32),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
+              child: RefreshIndicator(
+                onRefresh: () => ref.refresh(reportProvider(widget.jobId).future),
+                color: AppColors.primaryText,
+                backgroundColor: AppColors.surface,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.fromLTRB(24, 48, 24, 32),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
                     // Back
                     GestureDetector(
                       onTap: () => context.go('/history'),
@@ -169,14 +174,15 @@ class _ReportScreenState extends ConsumerState<ReportScreen>
                           context.go('/jobs/${widget.jobId}/report/viewer'),
                     ),
                     const SizedBox(height: 12),
-                    PrimaryButton(
-                      label: 'Ask Follow-up Questions',
-                      variant: PrimaryButtonVariant.outlined,
-                      icon: Icons.chat_bubble_outline_rounded,
-                      onPressed: () =>
-                          context.go('/jobs/${widget.jobId}/chat'),
-                    ),
-                  ],
+                      PrimaryButton(
+                        label: 'Ask Follow-up Questions',
+                        variant: PrimaryButtonVariant.outlined,
+                        icon: Icons.chat_bubble_outline_rounded,
+                        onPressed: () =>
+                            context.go('/jobs/${widget.jobId}/chat'),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             );
@@ -191,26 +197,40 @@ class _ReportScreenState extends ConsumerState<ReportScreen>
     return '${text.split(RegExp(r'\s+')).length} words';
   }
 
-  Widget _errorView(String msg) => Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          const Icon(Icons.error_outline_rounded,
-              size: 40, color: AppColors.error),
-          const SizedBox(height: 16),
-          const Text('Failed to load report',
-              style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primaryText,
-                  fontFamily: 'GeneralSans')),
-          const SizedBox(height: 8),
-          Text(msg,
-              style: const TextStyle(
-                  fontSize: 13,
-                  color: AppColors.mutedText,
-                  fontFamily: 'GeneralSans'),
-              textAlign: TextAlign.center),
-        ]),
+  Widget _errorView(String msg) => RefreshIndicator(
+        onRefresh: () => ref.refresh(reportProvider(widget.jobId).future),
+        color: AppColors.primaryText,
+        backgroundColor: AppColors.surface,
+        child: ListView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          padding: const EdgeInsets.all(24),
+          children: [
+            const SizedBox(height: 120),
+            Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              const Icon(Icons.error_outline_rounded,
+                  size: 40, color: AppColors.error),
+              const SizedBox(height: 16),
+              const Text('Failed to load report',
+                  style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primaryText,
+                      fontFamily: 'GeneralSans')),
+              const SizedBox(height: 8),
+              Text(msg,
+                  style: const TextStyle(
+                      fontSize: 13,
+                      color: AppColors.mutedText,
+                      fontFamily: 'GeneralSans'),
+                  textAlign: TextAlign.center),
+              const SizedBox(height: 20),
+              OutlinedButton(
+                onPressed: () => ref.refresh(reportProvider(widget.jobId)),
+                child: const Text('Retry'),
+              ),
+            ]),
+          ],
+        ),
       );
 }
 

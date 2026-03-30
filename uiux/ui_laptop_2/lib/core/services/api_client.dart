@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../models/api_error.dart';
+
 class ApiClient {
   ApiClient({String? baseUrl})
       : _dio = Dio(
@@ -51,14 +53,35 @@ class ApiClient {
   final Dio _dio;
 
   Future<Response<dynamic>> get(String path,
-          {Map<String, dynamic>? queryParameters}) =>
-      _dio.get(path, queryParameters: queryParameters);
+      {Map<String, dynamic>? queryParameters}) async {
+    try {
+      return await _dio.get(path, queryParameters: queryParameters);
+    } on DioException catch (e) {
+      throw ApiError.fromDio(e);
+    }
+  }
 
-  Future<Response<dynamic>> post(String path, {dynamic data}) =>
-      _dio.post(path, data: data);
+  Future<Response<dynamic>> post(String path, {dynamic data}) async {
+    try {
+      return await _dio.post(path, data: data);
+    } on DioException catch (e) {
+      throw ApiError.fromDio(e);
+    }
+  }
 
-  Future<Response<dynamic>> put(String path, {dynamic data}) =>
-      _dio.put(path, data: data);
+  Future<Response<dynamic>> put(String path, {dynamic data}) async {
+    try {
+      return await _dio.put(path, data: data);
+    } on DioException catch (e) {
+      throw ApiError.fromDio(e);
+    }
+  }
 
-  Future<Response<dynamic>> delete(String path) => _dio.delete(path);
+  Future<Response<dynamic>> delete(String path) async {
+    try {
+      return await _dio.delete(path);
+    } on DioException catch (e) {
+      throw ApiError.fromDio(e);
+    }
+  }
 }

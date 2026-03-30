@@ -44,7 +44,7 @@ class SettingsService {
   // Step 4 (Android physical device only) — allow plain HTTP in
   //   android/app/src/main/AndroidManifest.xml  inside <application>:
   //   android:usesCleartextTraffic="true"
-  static const defaultBackendUrl = 'http://10.0.2.2:8000';
+  static const defaultBackendUrl = 'http://192.168.0.103:8000';
 
   // ── Getters ───────────────────────────────────────────────────────────────
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/models/api_error.dart';
 import '../../../core/providers/job_providers.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/widgets/progress_bar.dart';
@@ -19,6 +20,7 @@ class _ProgressScreenState extends ConsumerState<ProgressScreen>
   late final AnimationController _dotCtrl;
   late final AnimationController _fadeCtrl;
   late final Animation<double> _fadeIn;
+  bool _didNavigateToReport = false;
 
   // Matches backend pipeline stages in research_pipeline.py exactly
   static const _stages = [
@@ -80,10 +82,15 @@ class _ProgressScreenState extends ConsumerState<ProgressScreen>
           ),
           error: (e, _) => _errorView('$e'),
           data: (job) {
-            if (job.status == 'completed') {
+            if (job.status == 'completed' && !_didNavigateToReport) {
+              _didNavigateToReport = true;
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (context.mounted) context.go('/jobs/${job.id}/report');
               });
+            }
+
+            if (job.status == 'failed') {
+              return _failedView();
             }
 
             final stage = _stageFor(job.status);
@@ -254,8 +261,71 @@ class _ProgressScreenState extends ConsumerState<ProgressScreen>
                   color: AppColors.mutedText,
                   fontFamily: 'GeneralSans'),
               textAlign: TextAlign.center),
+          const SizedBox(height: 20),
+          OutlinedButton(
+            onPressed: () => ref
+                .read(jobPollingProvider(widget.jobId).notifier)
+                .refreshNow(),
+            child: const Text('Retry'),
+          ),
         ]),
       );
+
+  Widget _failedView() {
+    final state = ref.watch(jobPollingProvider(widget.jobId));
+    String detail = 'The research job failed. Please retry.';
+
+    state.whenOrNull(
+      error: (error, _) {
+        if (error is ApiError) {
+          detail = error.detail;
+          return;
+        }
+        detail = error.toString();
+      },
+    );
+
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(
+            Icons.error_outline_rounded,
+            size: 40,
+            color: AppColors.error,
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'Research failed',
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: AppColors.primaryText,
+              fontFamily: 'GeneralSans',
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            detail,
+            style: const TextStyle(
+              fontSize: 13,
+              color: AppColors.mutedText,
+              fontFamily: 'GeneralSans',
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 20),
+          OutlinedButton(
+            onPressed: () => ref
+                .read(jobPollingProvider(widget.jobId).notifier)
+                .refreshNow(),
+            child: const Text('Retry'),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _Stage {

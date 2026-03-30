@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-// ✅ Single canonical import — removed the duplicate `../firebase_options.dart`
+
 import 'package:uiux/firebase_options.dart';
 
 import 'app/app.dart';

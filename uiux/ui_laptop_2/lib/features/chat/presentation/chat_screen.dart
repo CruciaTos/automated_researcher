@@ -107,19 +107,38 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
         opacity: _fadeIn,
         child: Column(children: [
           Expanded(
-            child: messages.isEmpty
-                ? _emptyState()
-                : ListView.builder(
-                    controller: _scrollCtrl,
-                    padding: const EdgeInsets.all(20),
-                    itemCount: messages.length + (_isSending ? 1 : 0),
-                    itemBuilder: (_, i) {
-                      if (i == messages.length && _isSending) {
-                        return const _TypingIndicator();
-                      }
-                      return _Bubble(message: messages[i], key: ValueKey(i));
-                    },
-                  ),
+            child: RefreshIndicator(
+              onRefresh: () async {
+                await ref
+                    .read(chatControllerProvider(widget.jobId).notifier)
+                    .retryLastUserMessage();
+              },
+              color: AppColors.primaryText,
+              backgroundColor: AppColors.surface,
+              child: messages.isEmpty
+                  ? _emptyState()
+                  : ListView.builder(
+                      controller: _scrollCtrl,
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      padding: const EdgeInsets.all(20),
+                      itemCount: messages.length + (_isSending ? 1 : 0),
+                      itemBuilder: (_, i) {
+                        if (i == messages.length && _isSending) {
+                          return const _TypingIndicator();
+                        }
+                        return _Bubble(
+                          key: ValueKey(i),
+                          message: messages[i],
+                          onRetry: messages[i].isError
+                              ? () => ref
+                                  .read(chatControllerProvider(widget.jobId)
+                                      .notifier)
+                                  .retryLastUserMessage()
+                              : null,
+                        );
+                      },
+                    ),
+            ),
           ),
           _inputBar(context),
         ]),
@@ -198,65 +217,72 @@ class _ChatScreenState extends ConsumerState<ChatScreen>
   }
 
   Widget _emptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-                color: AppColors.surface,
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.border, width: 1)),
-            child: const Icon(Icons.chat_bubble_outline_rounded,
-                size: 24, color: AppColors.mutedText),
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
+      children: [
+        Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child:
+                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Container(
+                width: 56,
+                height: 56,
+                decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.border, width: 1)),
+                child: const Icon(Icons.chat_bubble_outline_rounded,
+                    size: 24, color: AppColors.mutedText),
+              ),
+              const SizedBox(height: 20),
+              const Text('Ask anything about\nyour research',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primaryText,
+                      letterSpacing: -0.3,
+                      height: 1.3,
+                      fontFamily: 'GeneralSans')),
+              const SizedBox(height: 8),
+              const Text('Answers are grounded in collected sources only.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                      fontSize: 13,
+                      color: AppColors.mutedText,
+                      height: 1.4,
+                      fontFamily: 'GeneralSans')),
+              const SizedBox(height: 32),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                alignment: WrapAlignment.center,
+                children: [
+                  'Summarize key findings',
+                  'What are the limitations?',
+                  'Key controversies',
+                ]
+                    .map((q) => _SuggestionChip(
+                        label: q,
+                        onTap: () {
+                          _inputCtrl.text = q;
+                          _focusNode.requestFocus();
+                        }))
+                    .toList(),
+              ),
+            ]),
           ),
-          const SizedBox(height: 20),
-          const Text('Ask anything about\nyour research',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.primaryText,
-                  letterSpacing: -0.3,
-                  height: 1.3,
-                  fontFamily: 'GeneralSans')),
-          const SizedBox(height: 8),
-          const Text('Answers are grounded in collected sources only.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                  fontSize: 13,
-                  color: AppColors.mutedText,
-                  height: 1.4,
-                  fontFamily: 'GeneralSans')),
-          const SizedBox(height: 32),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            alignment: WrapAlignment.center,
-            children: [
-              'Summarize key findings',
-              'What are the limitations?',
-              'Key controversies',
-            ]
-                .map((q) => _SuggestionChip(
-                    label: q,
-                    onTap: () {
-                      _inputCtrl.text = q;
-                      _focusNode.requestFocus();
-                    }))
-                .toList(),
-          ),
-        ]),
-      ),
+        ),
+      ],
     );
   }
 }
 
 class _Bubble extends StatelessWidget {
-  const _Bubble({required this.message, super.key});
+  const _Bubble({required this.message, this.onRetry, super.key});
   final ChatMessage message;
+  final VoidCallback? onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -318,6 +344,10 @@ class _Bubble extends StatelessWidget {
                   child: CitationTile(
                       index: c.id, title: c.title, url: c.url),
                 )),
+          ],
+          if (!message.isUser && message.isError && onRetry != null) ...[
+            const SizedBox(height: 8),
+            OutlinedButton(onPressed: onRetry, child: const Text('Retry')),
           ],
         ],
       ),
