@@ -6,7 +6,6 @@ import '../features/auth/presentation/login_screen.dart';
 import '../features/chat/presentation/chat_screen.dart';
 import '../features/dashboard/presentation/dashboard_screen.dart';
 import '../features/history/presentation/history_screen.dart';
-import '../features/initialise/presentation/initialise_screen.dart';
 import '../features/navigation/presentation/main_shell.dart';
 import '../features/profile/presentation/profile_screen.dart';
 import '../features/progress/presentation/progress_screen.dart';
@@ -15,7 +14,7 @@ import '../features/report/presentation/report_viewer_screen.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
   return GoRouter(
-    initialLocation: '/login',
+    initialLocation: '/dashboard',
     routes: [
       GoRoute(
         path: '/login',
@@ -29,11 +28,6 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ShellRoute(
         builder: (context, state, child) => MainShell(child: child),
         routes: [
-          GoRoute(
-            path: '/initialise',
-            pageBuilder: (context, state) =>
-                _fadeTransition(const InitialiseScreen()),
-          ),
           GoRoute(
             path: '/dashboard',
             pageBuilder: (context, state) =>

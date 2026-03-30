@@ -14,7 +14,7 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   bool _expanded = false;
 
-  static const _tabs = ['/initialise', '/dashboard', '/history', '/profile'];
+  static const _tabs = ['/dashboard', '/history', '/profile'];
   static const _collapsedWidth = 64.0;
   static const _expandedWidth = 200.0;
 
@@ -72,36 +72,28 @@ class _MainShellState extends State<MainShell> {
                     child: Column(
                       children: [
                         _RailNavItem(
-                          icon: Icons.power_settings_new_rounded,
-                          label: 'Engine',
+                          icon: Icons.home_rounded,
+                          label: 'Home',
                           isActive: idx == 0,
                           isExpanded: _expanded,
                           onTap: () => context.go(_tabs[0]),
                         ),
                         const SizedBox(height: 6),
                         _RailNavItem(
-                          icon: Icons.home_rounded,
-                          label: 'Home',
+                          icon: Icons.history_rounded,
+                          label: 'History',
                           isActive: idx == 1,
                           isExpanded: _expanded,
                           onTap: () => context.go(_tabs[1]),
                         ),
-                        const SizedBox(height: 6),
-                        _RailNavItem(
-                          icon: Icons.history_rounded,
-                          label: 'History',
-                          isActive: idx == 2,
-                          isExpanded: _expanded,
-                          onTap: () => context.go(_tabs[2]),
-                        ),
                         const Spacer(),
                         _ProfileRailItem(
                           isExpanded: _expanded,
-                          isActive: idx == 3,
+                          isActive: idx == 2,
                           identity: identity,
                           initial: initial,
                           hasUser: user != null,
-                          onTap: () => context.go(_tabs[3]),
+                          onTap: () => context.go(_tabs[2]),
                         ),
                         const SizedBox(height: 8),
                         Icon(
