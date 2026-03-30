@@ -59,7 +59,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
    Future<void> _submitEmail() async {
     /// ✅ BYPASS
     if (!kEnableAuth) {
-      if (mounted) context.go('/dashboard');
+      if (mounted) context.go('/initialise');
       return;
     }
 
@@ -83,7 +83,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
       } else {
         await auth.createAccountWithEmail(email, password);
       }
-      if (mounted) context.go('/dashboard');
+      if (mounted) context.go('/initialise');
     } on FirebaseAuthException catch (e) {
       setState(() => _errorMessage = _friendlyError(e.code));
     } catch (_) {
@@ -99,7 +99,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
   Future<void> _submitGoogle() async {
     /// ✅ BYPASS
     if (!kEnableAuth) {
-      if (mounted) context.go('/dashboard');
+      if (mounted) context.go('/initialise');
       return;
     }
 
@@ -111,7 +111,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
     try {
       final result =
           await ref.read(authServiceProvider).signInWithGoogle();
-      if (result != null && mounted) context.go('/dashboard');
+      if (result != null && mounted) context.go('/initialise');
     } on FirebaseAuthException catch (e) {
       setState(() => _errorMessage = _friendlyError(e.code));
     } catch (_) {

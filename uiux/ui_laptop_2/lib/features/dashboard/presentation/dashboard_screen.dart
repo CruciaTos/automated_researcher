@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'package:uiux/core/widgets/advanced_settings_sheet.dart';
+import 'dart:math';
 
 import '../../../core/providers/job_providers.dart';
 import '../../../core/theme/app_theme.dart';
@@ -23,6 +25,18 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
 
   late final AnimationController _animCtrl;
   late final Animation<double> _fadeIn;
+  late final String _prompt;
+  late final String _firstName;
+
+  static const _prompts = [
+    "Let's work nightout",
+    'Time to go deep',
+    'What are we solving today',
+    "Let's find some answers",
+    'Ready when you are',
+    'Knowledge incoming',
+    "Let's get to work",
+  ];
 
   static const _depths = [
     _DepthOption(
@@ -45,6 +59,12 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
   @override
   void initState() {
     super.initState();
+    _prompt = _prompts[Random().nextInt(_prompts.length)];
+    final user = FirebaseAuth.instance.currentUser;
+    final display = user?.displayName?.trim();
+    _firstName = (display != null && display.isNotEmpty)
+        ? display.split(' ').first
+        : (user?.email?.split('@').first ?? 'Researcher');
     _animCtrl = AnimationController(
         vsync: this, duration: const Duration(milliseconds: 600));
     _fadeIn = CurvedAnimation(parent: _animCtrl, curve: Curves.easeOut);
@@ -80,20 +100,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                   const Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('Research',
-                          style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.primaryText,
-                              letterSpacing: -0.8,
-                              height: 1.1,
-                              fontFamily: 'GeneralSans')),
-                      SizedBox(height: 2),
-                      Text('AI-powered deep research',
-                          style: TextStyle(
-                              fontSize: 14,
-                              color: AppColors.secondaryText,
-                              fontFamily: 'GeneralSans')),
+                      SizedBox.shrink(),
                     ],
                   ),
                   // ✅ Settings button — opens AdvancedSettingsSheet
@@ -113,6 +120,14 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen>
                   ),
                 ],
               ),
+              Text('$_prompt, $_firstName',
+                  style: const TextStyle(
+                      fontSize: 26,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.primaryText,
+                      letterSpacing: -0.6,
+                      height: 1.1,
+                      fontFamily: 'GeneralSans')),
               const SizedBox(height: 40),
 
               // ── Topic input ───────────────────────────────────────────────
